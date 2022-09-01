@@ -1,44 +1,51 @@
 package pack.spring.DAO;
 
-import org.springframework.stereotype.Component;
-import pack.spring.models.User;
 
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import pack.spring.models.User;
+import org.hibernate.Session;
+
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
-@Component
+
+@Repository
+@Transactional
 public class UserDAO {
 
-    List<User> people;
-    private static int COUNT;
 
-    {
-        people = new ArrayList<>();
-        people.add(new User(++COUNT,"Alex"));
-        people.add(new User(++COUNT,"Leo"));
-        people.add(new User(++COUNT,"Max"));
-        people.add(new User(++COUNT,"Cas"));
+    @PersistenceContext
+    private EntityManager entityManager;
+
+
+    public void addUser(User user) {
+        entityManager.persist(user);
     }
 
-    public List<User> index(){
-        return people;
+    public User getUser(long id) {
+
+        return entityManager.find(User.class, id);
     }
 
-    public User show(int id){
-        return people.stream().filter(people -> people.getId() == id).findFirst().orElse(null);
+    public void deleteUser(long id) {
+        entityManager.remove(getUser(id));
     }
 
-
-    public void save(User user) {
-        user.setId(++COUNT);
-        people.add(user);
+    @SuppressWarnings("unchecked")
+    public List<User> getAllUsers() {
+        TypedQuery<User> query = entityManager.createQuery("select u from User u", User.class);
+        return query.getResultList();
     }
 
-    public void update(int id, User updateUser) {
-        User userUp = show(id);
-        userUp.setName(updateUser.getName());
-    }
+    public User updateUser(User user) {
 
-    public void delete(int id) {
-        people.removeIf(user -> user.getId()==id);
+        return entityManager.merge(user);
     }
 }

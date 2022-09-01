@@ -7,55 +7,49 @@ import org.springframework.web.bind.annotation.*;
 import pack.spring.DAO.UserDAO;
 import pack.spring.models.User;
 
+import java.util.List;
+
 @Controller
-@RequestMapping("/users")
 public class UsersController {
     private final UserDAO userDAO;
-
     @Autowired
     public UsersController(UserDAO userDAO) {
         this.userDAO = userDAO;
     }
-
-    @GetMapping()
-    public String index(Model model) {
-        model.addAttribute("users", userDAO.index());
-        return "index";
+    @GetMapping("/users")
+    public String allUsers (Model model) {
+        List<User> users = userDAO.getAllUsers();
+        model.addAttribute("users", users);
+        return "users";
     }
-
     @GetMapping("/{id}")
-    public String show(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userDAO.show(id));
-        return "/show";
+    public String showById (@PathVariable("id") long id, Model model) {
+        model.addAttribute("user", userDAO.getUser(id));
+        return "users";
     }
-
-    @GetMapping("/new")
-    public String newPerson(@ModelAttribute("user") User user) {
-        return "/new";
+    @GetMapping("/create")
+    public String newUserForm (@ModelAttribute("user") User user, Model model) {
+        return "create";
     }
-
-    @PostMapping
+    @PostMapping("/create")
     public String create(@ModelAttribute("user") User user) {
-        userDAO.save(user);
+        userDAO.addUser(user);
         return "redirect:/users";
     }
-
-    @GetMapping("/{id}/edit")
-    public String edit(Model model,@PathVariable("id") int id){
-        model.addAttribute("user",userDAO.show(id));
-        return "/edit";
-    }
-
-    @PatchMapping("/{id}")
-    public String update(@ModelAttribute("user")User user, @PathVariable("id")int id){
-        userDAO.update(id,user);
+    @GetMapping("/delete/{id}")
+    public String deleteUser(@PathVariable("id") long id) {
+        userDAO.deleteUser(id);
         return "redirect:/users";
     }
-
-
-    @DeleteMapping("/{id}")
-    public String delete(@PathVariable("id")int id) {
-        userDAO.delete(id);
+    @GetMapping("/update/{id}")
+    public String edit (@PathVariable("id") long id,Model model) {
+        User user = userDAO.getUser(id);
+        model.addAttribute("user", user);
+        return "update";
+    }
+    @PostMapping ("/update")
+    public String editUsers(User user) {
+        userDAO.updateUser(user);
         return "redirect:/users";
     }
 }
